@@ -16,7 +16,6 @@ export async function animalsService(query) {
   });
 
   const { data } = await axios.get(`${BASE_URL}?${params}`);
-  console.log(data);
 
   currentPage += 1;
   return data;

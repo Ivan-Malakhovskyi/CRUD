@@ -1,18 +1,15 @@
-import { animalsService, resetPage } from './news/animals-api.service';
+import { animalsService, resetPage } from './news/pictures-api.service';
+import { getRefs } from './news/get-refs';
 import { Notify } from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const refs = {
-  form: document.querySelector('#search-form'),
-  divQuard: document.querySelector('.js-quard'),
-  galleryList: document.querySelector('.js-gallery'),
-  btnSubmit: document.querySelector('button'),
-};
+const refs = getRefs();
 
-const simplelightbox = new SimpleLightbox('.js-gallery a');
+let simplelightbox = new SimpleLightbox('.js-gallery a');
 
 refs.form.addEventListener('submit', onFormSubmit);
+
 let query = '';
 
 async function onFormSubmit(evt) {
@@ -29,20 +26,26 @@ async function onFormSubmit(evt) {
   try {
     refs.galleryList.innerHTML = '';
     const { hits, totalHits } = await animalsService(query);
-    Notify.success(`"Hooray! We found ${totalHits} images."`);
+
+    if (totalHits) {
+      Notify.success(`"Hooray! We found ${totalHits} images."`);
+    }
 
     if (hits.length === 0) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
     }
+
     const markup = createMarkup(hits);
-    simplelightbox.refresh();
 
     refs.galleryList.insertAdjacentHTML('beforeend', markup);
+    simplelightbox.refresh();
+
     observer.observe(refs.divQuard);
   } catch (error) {
     console.log(error.message);
+    throw new Error(error);
   }
 }
 
@@ -60,10 +63,8 @@ function createMarkup(arr) {
       }) => {
         return `
         <div class="photo-card">
-
-         <a href="${largeImageURL}">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
- 
+        <a class="link-image" href="${largeImageURL}">
+    <img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
   <div class="info">
     <p class="info-item">
       <b>Likes ${likes}</b>
@@ -78,8 +79,6 @@ function createMarkup(arr) {
       <b>Downloads ${downloads}</b>
     </p>
   </div>
-
-    </a>
 </div>
 `;
       }
@@ -102,8 +101,10 @@ async function onPaginationPhoto(entries, observer) {
         const { hits } = await animalsService(query);
         const markup = createMarkup(hits);
         refs.galleryList.insertAdjacentHTML('beforeend', markup);
+        simplelightbox.refresh();
       } catch (error) {
-        throw new Error(error.message);
+        console.log(error.message);
+        throw new Error(error);
       }
     }
   });
