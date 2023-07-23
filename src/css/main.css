@@ -1,0 +1,59 @@
+form {
+    margin-top: 20px;
+    margin-left: 20px;
+
+}
+
+.photo-card {
+    flex-basis: calc((100% - 3 * 24px) / 4);
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 24px;
+    row-gap: 48px;
+
+}
+
+.photo-card img {
+    display: block;
+
+    max-width: 100%;
+
+}
+
+.info {
+
+    border: 1px solid #e7e9fc;
+    padding: 10px;
+    box-shadow: 0px 1px 6px rgba(46, 47, 66, 0.08),
+        0px 1px 1px rgba(46, 47, 66, 0.16),
+        0px 2px 1px rgba(46, 47, 66, 0.08);
+    ;
+    color: #2e2f42;
+}
+
+.form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+button {
+    margin-left: 10px;
+    color: #fff;
+    cursor: pointer;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+
+a {
+    text-decoration: none;
+}
