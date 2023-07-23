@@ -40,12 +40,15 @@ async function onFormSubmit(evt) {
     const markup = createMarkup(hits);
 
     refs.galleryList.insertAdjacentHTML('beforeend', markup);
+    hideSpiner();
     simplelightbox.refresh();
 
     observer.observe(refs.divQuard);
   } catch (error) {
     console.log(error.message);
     throw new Error(error);
+  } finally {
+    hideSpiner();
   }
 }
 
@@ -109,3 +112,13 @@ async function onPaginationPhoto(entries, observer) {
     }
   });
 }
+
+function showSpiner() {
+  refs.loader.classList.remove('is-hidden');
+}
+
+function hideSpiner() {
+  refs.loader.classList.add('is-hidden');
+}
+
+export { showSpiner, hideSpiner };
