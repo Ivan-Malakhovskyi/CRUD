@@ -7,6 +7,8 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 const refs = getRefs();
 
 let simplelightbox = new SimpleLightbox('.js-gallery a');
+let nextPageRequest = false;
+let isEndPage = false;
 
 refs.form.addEventListener('submit', onFormSubmit);
 
@@ -18,6 +20,7 @@ async function onFormSubmit(evt) {
   query = evt.currentTarget.elements.searchQuery.value.trim();
 
   resetPage();
+  // errorUserQueryNotify(query);
   if (query === '') {
     Notify.failure('Please, enter that you want find');
     return;
@@ -27,10 +30,11 @@ async function onFormSubmit(evt) {
     refs.galleryList.innerHTML = '';
     const { hits, totalHits } = await animalsService(query);
 
+    // succesFoundImagesNotify(totalHits);
     if (totalHits) {
       Notify.success(`"Hooray! We found ${totalHits} images."`);
     }
-
+    // isFailureSearchNotify(hits);
     if (hits.length === 0) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -43,7 +47,12 @@ async function onFormSubmit(evt) {
     hideSpiner();
     simplelightbox.refresh();
 
-    observer.observe(refs.divQuard);
+    if (hits.length < totalHits) {
+      observer.observe(refs.divQuard);
+      nextPageRequest = false;
+    } else {
+      nextPageRequest = true;
+    }
   } catch (error) {
     console.log(error.message);
     throw new Error(error);
@@ -99,12 +108,32 @@ const observer = new IntersectionObserver(onPaginationPhoto, options);
 
 async function onPaginationPhoto(entries, observer) {
   entries.forEach(async entry => {
-    if (entry.isIntersecting) {
+    if (entry.isIntersecting && !isEndPage) {
       try {
+        nextPageRequest = false;
+
         const { hits } = await animalsService(query);
-        const markup = createMarkup(hits);
-        refs.galleryList.insertAdjacentHTML('beforeend', markup);
+        if (hits.length > 0) {
+          const markup = createMarkup(hits);
+
+          refs.galleryList.insertAdjacentHTML('beforeend', markup);
+        }
+
+        if (hits.length <= 1) {
+          observer.unobserve(entry.target);
+          isEndPage = true;
+          Notify.info('You have reached the end of the list of images found');
+        }
+
+        // else {
+        //   isEndPage = true;
+        //   // Notify.info('You have reached the end of the list of images found');
+        // }
+
+        nextPageRequest = false;
+
         simplelightbox.refresh();
+        // smoothScrolling();
       } catch (error) {
         console.log(error.message);
         throw new Error(error);
@@ -121,4 +150,36 @@ function hideSpiner() {
   refs.loader.classList.add('is-hidden');
 }
 
+// function errorUserQueryNotify(query) {
+//   if (query === '') {
+//     Notify.failure('Please, enter that you want find');
+//     return;
+//   }
+// }
+
+// function succesFoundImagesNotify(totalHits) {
+//   if (totalHits) {
+//     Notify.success(`"Hooray! We found ${totalHits} images."`);
+//   }
+// }
+
+// function isFailureSearchNotify(hits) {
+//   if (hits.length === 0) {
+//     Notify.failure(
+//       'Sorry, there are no images matching your search query. Please try again.'
+//     );
+//   }
+// }
+
 export { showSpiner, hideSpiner };
+
+// function smoothScrolling() {
+//   const { height: cardHeight } = document
+//     .querySelector('.js-gallery')
+//     .firstElementChild.getBoundingClientRect();
+
+//   window.scrollBy({
+//     top: cardHeight * 2,
+//     behavior: 'smooth',
+//   });
+// }
