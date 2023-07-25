@@ -20,7 +20,7 @@ async function onFormSubmit(evt) {
   query = evt.currentTarget.elements.searchQuery.value.trim();
 
   resetPage();
-  // errorUserQueryNotify(query);
+
   if (query === '') {
     Notify.failure('Please, enter that you want find');
     return;
@@ -30,11 +30,10 @@ async function onFormSubmit(evt) {
     refs.galleryList.innerHTML = '';
     const { hits, totalHits } = await animalsService(query);
 
-    // succesFoundImagesNotify(totalHits);
     if (totalHits) {
       Notify.success(`"Hooray! We found ${totalHits} images."`);
     }
-    // isFailureSearchNotify(hits);
+
     if (hits.length === 0) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -52,6 +51,8 @@ async function onFormSubmit(evt) {
       nextPageRequest = false;
     } else {
       nextPageRequest = true;
+      isEndPage = true;
+      Notify.info('You have reached the end of the list of images found');
     }
   } catch (error) {
     console.log(error.message);
@@ -107,8 +108,10 @@ const options = {
 const observer = new IntersectionObserver(onPaginationPhoto, options);
 
 async function onPaginationPhoto(entries, observer) {
+  console.log(entries);
+  console.log(observer);
   entries.forEach(async entry => {
-    if (entry.isIntersecting && !isEndPage) {
+    if (entry.isIntersecting) {
       try {
         nextPageRequest = false;
 
@@ -123,17 +126,10 @@ async function onPaginationPhoto(entries, observer) {
           observer.unobserve(entry.target);
           isEndPage = true;
           Notify.info('You have reached the end of the list of images found');
+          nextPageRequest = false;
         }
 
-        // else {
-        //   isEndPage = true;
-        //   // Notify.info('You have reached the end of the list of images found');
-        // }
-
-        nextPageRequest = false;
-
         simplelightbox.refresh();
-        // smoothScrolling();
       } catch (error) {
         console.log(error.message);
         throw new Error(error);
@@ -150,36 +146,4 @@ function hideSpiner() {
   refs.loader.classList.add('is-hidden');
 }
 
-// function errorUserQueryNotify(query) {
-//   if (query === '') {
-//     Notify.failure('Please, enter that you want find');
-//     return;
-//   }
-// }
-
-// function succesFoundImagesNotify(totalHits) {
-//   if (totalHits) {
-//     Notify.success(`"Hooray! We found ${totalHits} images."`);
-//   }
-// }
-
-// function isFailureSearchNotify(hits) {
-//   if (hits.length === 0) {
-//     Notify.failure(
-//       'Sorry, there are no images matching your search query. Please try again.'
-//     );
-//   }
-// }
-
 export { showSpiner, hideSpiner };
-
-// function smoothScrolling() {
-//   const { height: cardHeight } = document
-//     .querySelector('.js-gallery')
-//     .firstElementChild.getBoundingClientRect();
-
-//   window.scrollBy({
-//     top: cardHeight * 2,
-//     behavior: 'smooth',
-//   });
-// }
