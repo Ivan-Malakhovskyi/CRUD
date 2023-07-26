@@ -1,4 +1,5 @@
 import { animalsService, resetPage } from './news/pictures-api.service';
+import { createMarkup } from './news/markup';
 import { getRefs } from './news/get-refs';
 import { Notify } from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
@@ -7,9 +8,8 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 const refs = getRefs();
 
 let simplelightbox = new SimpleLightbox('.js-gallery a');
-let nextPageRequest = false;
-let isEndPage = false;
 
+let currentPage = 1;
 refs.form.addEventListener('submit', onFormSubmit);
 
 let query = '';
@@ -28,6 +28,7 @@ async function onFormSubmit(evt) {
 
   try {
     refs.galleryList.innerHTML = '';
+    currentPage = 1;
     const { hits, totalHits } = await animalsService(query);
 
     if (totalHits) {
@@ -38,6 +39,7 @@ async function onFormSubmit(evt) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
+      return;
     }
 
     const markup = createMarkup(hits);
@@ -45,13 +47,11 @@ async function onFormSubmit(evt) {
     refs.galleryList.insertAdjacentHTML('beforeend', markup);
     hideSpiner();
     simplelightbox.refresh();
+    evt.target.reset();
 
     if (hits.length < totalHits) {
       observer.observe(refs.divQuard);
-      nextPageRequest = false;
     } else {
-      nextPageRequest = true;
-      isEndPage = true;
       Notify.info('You have reached the end of the list of images found');
     }
   } catch (error) {
@@ -60,43 +60,6 @@ async function onFormSubmit(evt) {
   } finally {
     hideSpiner();
   }
-}
-
-function createMarkup(arr) {
-  return arr
-    .map(
-      ({
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => {
-        return `
-        <div class="photo-card">
-        <a class="link-image" href="${largeImageURL}">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
-  <div class="info">
-    <p class="info-item">
-      <b>Likes ${likes}</b>
-    </p>
-    <p class="info-item">
-      <b>Views ${views}</b>
-    </p>
-    <p class="info-item">
-      <b>Comments ${comments}</b>
-    </p>
-    <p class="info-item">
-      <b>Downloads ${downloads}</b>
-    </p>
-  </div>
-</div>
-`;
-      }
-    )
-    .join('');
 }
 
 const options = {
@@ -113,24 +76,30 @@ async function onPaginationPhoto(entries, observer) {
   entries.forEach(async entry => {
     if (entry.isIntersecting) {
       try {
-        nextPageRequest = false;
+        currentPage += 1;
 
-        const { hits } = await animalsService(query);
+        const { hits, totalHits } = await animalsService(query, currentPage);
         if (hits.length > 0) {
           const markup = createMarkup(hits);
 
           refs.galleryList.insertAdjacentHTML('beforeend', markup);
         }
 
-        if (hits.length <= 1) {
+        if (currentPage === 12) {
           observer.unobserve(entry.target);
-          isEndPage = true;
+          Notify.info('You have reached the last page');
+        }
+
+        if (currentPage === Math.ceil(totalHits / 40)) {
+          observer.unobserve(entry.target);
+
           Notify.info('You have reached the end of the list of images found');
-          nextPageRequest = false;
         }
 
         simplelightbox.refresh();
       } catch (error) {
+        Notify.failure('Failed to fetch data'); // Повідомити про невдалість запиту
+        observer.unobserve(entry.target); // З
         console.log(error.message);
         throw new Error(error);
       }

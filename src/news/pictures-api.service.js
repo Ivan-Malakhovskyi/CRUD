@@ -3,9 +3,8 @@ import { showSpiner, hideSpiner } from '../index.js';
 
 const API_KEY = '38403877-64d14ccf654d22b76dab55b11';
 const BASE_URL = 'https://pixabay.com/api/';
-let currentPage = 1;
 
-export async function animalsService(query) {
+export async function animalsService(query, currentPage = 1) {
   const params = new URLSearchParams({
     key: API_KEY,
     q: query,
@@ -19,7 +18,7 @@ export async function animalsService(query) {
   showSpiner();
   const { data } = await axios.get(`${BASE_URL}?${params}`);
   hideSpiner();
-  currentPage += 1;
+  // currentPage += 1;
   return data;
 }
 
