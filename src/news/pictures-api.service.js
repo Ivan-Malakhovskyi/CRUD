@@ -22,6 +22,6 @@ export async function animalsService(query, currentPage = 1) {
   return data;
 }
 
-export function resetPage() {
-  currentPage = 1;
-}
+// export function resetPage() {
+//   currentPage = 1;
+// }

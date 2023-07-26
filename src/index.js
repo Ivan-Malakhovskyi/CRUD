@@ -1,4 +1,4 @@
-import { animalsService, resetPage } from './news/pictures-api.service';
+import { animalsService } from './news/pictures-api.service';
 import { createMarkup } from './news/markup';
 import { getRefs } from './news/get-refs';
 import { Notify } from 'notiflix';
@@ -10,6 +10,7 @@ const refs = getRefs();
 let simplelightbox = new SimpleLightbox('.js-gallery a');
 
 let currentPage = 1;
+
 refs.form.addEventListener('submit', onFormSubmit);
 
 let query = '';
@@ -26,8 +27,8 @@ async function onFormSubmit(evt) {
 
   try {
     refs.galleryList.innerHTML = '';
-    // currentPage = 1;
-    resetPage();
+    currentPage = 1;
+    // resetPage();
     const { hits, totalHits } = await animalsService(query);
 
     if (totalHits) {
