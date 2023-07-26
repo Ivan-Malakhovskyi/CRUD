@@ -18,7 +18,7 @@ export async function animalsService(query, currentPage = 1) {
   showSpiner();
   const { data } = await axios.get(`${BASE_URL}?${params}`);
   hideSpiner();
-  // currentPage += 1;
+
   return data;
 }
 

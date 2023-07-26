@@ -19,8 +19,6 @@ async function onFormSubmit(evt) {
 
   query = evt.currentTarget.elements.searchQuery.value.trim();
 
-  resetPage();
-
   if (query === '') {
     Notify.failure('Please, enter that you want find');
     return;
@@ -28,7 +26,8 @@ async function onFormSubmit(evt) {
 
   try {
     refs.galleryList.innerHTML = '';
-    currentPage = 1;
+    // currentPage = 1;
+    resetPage();
     const { hits, totalHits } = await animalsService(query);
 
     if (totalHits) {
@@ -71,8 +70,6 @@ const options = {
 const observer = new IntersectionObserver(onPaginationPhoto, options);
 
 async function onPaginationPhoto(entries, observer) {
-  console.log(entries);
-  console.log(observer);
   entries.forEach(async entry => {
     if (entry.isIntersecting) {
       try {
